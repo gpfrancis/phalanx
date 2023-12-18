@@ -1,0 +1,14 @@
+name: gfdev
+fqdn: rsp-gfdev.lsst.ac.uk
+vaultUrl: "https://vault.lsst.ac.uk"
+vaultPathPrefix: secret/k8s_operator/gfdev
+
+applications:
+  cachemachine: true
+  mobu: true
+  moneypenny: true
+  nublado2: true
+  portal: true
+  postgres: true
+  squareone: true
+  tap: true
