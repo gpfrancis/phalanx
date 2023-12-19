@@ -12,3 +12,4 @@ applications:
   postgres: true
   squareone: true
   tap: true
+  cert-manager: true

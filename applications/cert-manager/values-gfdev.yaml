@@ -1,5 +1,5 @@
 config:
-  email: "rsp@gfdev.ac.uk"
+  email: "g.francis@epcc.ed.ac.uk"
   route53:
-    awsAccessKeyId: "AKIAQSJOS2SFL5I4TYND"
-    hostedZone: "Z0567328105IEHEMIXLCO"
+    awsAccessKeyId: "AKIAU5ANKGYG74UJWOK7"
+    hostedZone: "Z0708474E4EQZX7L00SP"
