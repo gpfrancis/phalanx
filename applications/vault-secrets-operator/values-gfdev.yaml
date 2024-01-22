@@ -10,5 +10,5 @@ vault-secrets-operator:
         secretKeyRef:
           name: "vault-secrets-operator"
           key: "VAULT_TOKEN_LEASE_DURATION"
- vault:
-   address: "https://vault.lsst.ac.uk"
+  vault:
+    address: "https://vault.lsst.ac.uk"
