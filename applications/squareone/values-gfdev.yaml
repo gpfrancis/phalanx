@@ -118,5 +118,5 @@ config:
 
     Don't forget to check the <Link href="/docs">documentation</Link>.
 
-ingress:
-  tls: false
+#ingress:
+#  tls: false
