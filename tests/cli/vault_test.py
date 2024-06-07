@@ -107,7 +107,7 @@ def test_copy_secrets(
 
     result = run_cli("vault", "copy-secrets", "idfdev", old_path)
     assert result.exit_code == 0
-    assert result.output == ""
+    assert result.output == read_output_data("idfdev", "copy-output")
     result = run_cli("vault", "export-secrets", "idfdev", str(tmp_path))
     assert result.exit_code == 0
     assert result.output == ""
@@ -186,6 +186,7 @@ def test_create_write_token(
     token = VaultToken.model_validate(yaml.safe_load(result.output))
     assert token.display_name == display_name
     expires = current_datetime() + lifetime
+    assert token.expires
     assert expires - timedelta(seconds=5) <= token.expires <= expires
     assert token.policies == [f"{vault_path}/write"]
     token_metadata = mock_vault.lookup_accessor(token.accessor)

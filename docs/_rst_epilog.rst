@@ -29,12 +29,13 @@
 .. _Namespace: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
 .. _`lsst-sqre/phalanx`:
 .. _ObsTAP: https://www.ivoa.net/documents/ObsCore/
+.. _persistent volume: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
 .. _Phalanx repository: https://github.com/lsst-sqre/phalanx
 .. _Pods:
 .. _Pod: https://kubernetes.io/docs/concepts/workloads/pods/
 .. _pre-commit: https://pre-commit.com
 .. _Roundtable: https://roundtable.lsst.io/
-.. _Ruff: https://beta.ruff.rs/docs/
+.. _Ruff: https://docs.astral.sh/ruff/
 .. _Safir: https://safir.lsst.io/
 .. _Secret: https://kubernetes.io/docs/concepts/configuration/secret/
 .. _semantic versioning: https://semver.org/

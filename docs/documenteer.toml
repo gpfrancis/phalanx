@@ -30,6 +30,8 @@ nitpick_ignore = [
     ["py:class", "pydantic.networks.AnyHttpUrl"],
     ["py:class", "pydantic.types.SecretStr"],
     ["py:class", "pydantic.utils.Representation"],
+    ["py:obj", "ComputedFieldInfo"],
+    ["py:obj", "pydantic.BaseModel.model_dict"],
 ]
 nitpick_ignore_regex = [
     # Bug in Sphinx
@@ -63,6 +65,8 @@ ignore = [
     '^https://usdf-prompt-processing-dev.slac.stanford.edu',
     '^https://usdf-rsp.slac.stanford.edu',
     '^https://usdf-rsp-dev.slac.stanford.edu',
+    '^https://usdf-rsp-int.slac.stanford.edu',
     '^https://usdf-tel-rsp.slac.stanford.edu',
     '^https://github.com/orgs/',
+    '^https://console.cloud.google.com/',
 ]
