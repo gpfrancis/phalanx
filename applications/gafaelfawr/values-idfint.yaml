@@ -31,6 +31,9 @@ config:
   oidcServer:
     enabled: true
 
+  # Support generating user metadata for CADC authentication code.
+  cadcBaseUuid: "dd5cd3ee-4239-48e4-b0e3-282f2328b9d1"
+
   # User quota settings for services.
   quota:
     default:
@@ -42,8 +45,6 @@ config:
   groupMapping:
     "admin:jupyterlab":
       - "g_admins"
-    "admin:provision":
-      - "g_admins"
     "exec:admin":
       - "g_admins"
     "exec:internal-tools":
@@ -52,9 +53,6 @@ config:
       - "g_users"
     "exec:portal":
       - "g_users"
-    "read:alertdb":
-      - "g_admins"
-      - "g_developers"
     "read:image":
       - "g_users"
     "read:tap":

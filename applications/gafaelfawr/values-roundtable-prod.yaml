@@ -18,11 +18,32 @@ config:
   oidcServer:
     enabled: false
 
+  knownScopes:
+    "write:git-lfs": >-
+      Can write objects to Git LFS storage bucket
+    "read:checkerboard": >-
+      Can query Checkerboard for user mappings
+
   groupMapping:
     "exec:admin":
       - github:
           organization: "lsst-sqre"
           team: "square"
+    "write:git-lfs":
+      - github:
+          organization: "lsst"
+          team: "data-management"
+      - github:
+          organization: "lsst"
+          team: "simulations"
+    "read:checkerboard":
+      - github:
+          organization: "lsst-sqre"
+          team: "square"
+      - github:
+          organization: "lsst-sqre"
+          team: "Friends"
+
 
   initialAdmins:
     - "afausti"
@@ -34,3 +55,8 @@ config:
 
   errorFooter: |
     To report problems or ask for help, contact #dm-square on the LSSTC Slack.
+
+ingress:
+  additionalHosts:
+    - "git-lfs.lsst.cloud"
+    - "git-lfs-rw.lsst.cloud"
