@@ -1,0 +1,12 @@
+argo-cd:
+  server:
+    ingress:
+      hosts:
+        - "rsp-gfdev.lsst.ac.uk"
+
+    config:
+      url: "https://rsp-gfdev.lsst.ac.uk/argo-cd"
+
+  configs:
+    secret:
+      createSecret: true

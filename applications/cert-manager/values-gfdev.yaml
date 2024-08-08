@@ -1,0 +1,5 @@
+config:
+  email: "g.francis@epcc.ed.ac.uk"
+  route53:
+    awsAccessKeyId: "AKIAU5ANKGYG74UJWOK7"
+    hostedZone: "Z0708474E4EQZX7L00SP"
