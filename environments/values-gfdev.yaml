@@ -8,5 +8,5 @@ applications:
   portal: true
   postgres: true
   squareone: true
-  tap: true
+  tap: false
   cert-manager: true
