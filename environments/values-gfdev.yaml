@@ -9,4 +9,4 @@ applications:
   postgres: true
   squareone: true
   tap: false
-  cert-manager: true
+  cert-manager: false
