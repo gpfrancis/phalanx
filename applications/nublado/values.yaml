@@ -8,7 +8,7 @@ controller:
   # service account that has an IAM binding to the `nublado-controller`
   # Kubernetes service account and has the Artifact Registry reader role
   # @default -- None, must be set when using Google Artifact Registry
-  googleServiceAccount: ""
+  googleServiceAccount: null
 
   image:
     # -- Nublado controller image to use
@@ -19,7 +19,7 @@ controller:
 
     # -- Tag of Nublado controller image to use
     # @default -- The appVersion of the chart
-    tag: ""
+    tag: null
 
   ingress:
     # -- Additional annotations to add for the Nublado controller ingress
@@ -35,7 +35,7 @@ controller:
   # @default -- See `values.yaml`
   resources:
     limits:
-      cpu: "0.25"
+      cpu: "1"
       memory: "200Mi"
     requests:
       cpu: "0.05"
@@ -66,16 +66,17 @@ controller:
       # -- Argo CD application in which to collect user file servers
       application: "nublado-fileservers"
 
-      # -- Timeout to wait for Kubernetes to create file servers, in seconds
-      creationTimeout: 120
+      # -- Timeout to wait for Kubernetes to create file servers, in Safir
+      # `parse_timedelta` format
+      creationTimeout: 2m
 
-      # -- Timeout for deleting a user's file server from Kubernetes, in
-      # seconds
-      # @default -- 60 (1 minute)
-      deleteTimeout: 60
+      # -- Timeout for deleting a user's file server from Kubernetes, in Safir
+      # `parse_timedelta` format
+      deleteTimeout: 1m
 
-      # -- Timeout for idle user fileservers, in seconds
-      idleTimeout: 3600
+      # -- Timeout for idle user fileservers, in Safir `parse_timedelta`
+      # format
+      idleTimeout: 1h
 
       image:
         # -- File server image to use
@@ -158,21 +159,21 @@ controller:
       application: "nublado-users"
 
       # -- Timeout for deleting a user's lab resources from Kubernetes in
-      # seconds
-      # @default -- 60 (1 minute)
-      deleteTimeout: 60
+      # Safir `parse_timedelta` format
+      deleteTimeout: 1m
 
       # -- Environment variables to set for every user lab
       # @default -- See `values.yaml`
       env:
         API_ROUTE: "/api"
         AUTO_REPO_SPECS: "https://github.com/lsst-sqre/system-test@prod"
-        CULL_KERNEL_IDLE_TIMEOUT: "432000"  # These might be set from group?
+        CULL_KERNEL_IDLE_TIMEOUT: "432000"  # 5 days
         CULL_KERNEL_CONNECTED: "True"
-        CULL_KERNEL_INTERVAL: "300"
+        CULL_KERNEL_INTERVAL: "300"  # 5 minutes
         FIREFLY_ROUTE: "/portal/app"
         HUB_ROUTE: "/nb/hub"
-        NO_ACTIVITY_TIMEOUT: "432000"  # Also from group?
+        NO_ACTIVITY_TIMEOUT: "432000"  # 5 days
+        RSP_SITE_TYPE: "science"
         TAP_ROUTE: "/api/tap"
 
       # -- Extra annotations to add to user lab pods
@@ -346,27 +347,53 @@ hub:
   # controls how the database password is managed.
   internalDatabase: true
 
+  # -- Minimum remaining token lifetime when spawning a lab. The token cannot
+  # be renewed, so it should ideally live as long as the lab does. If the
+  # token has less remaining lifetime, the user will be redirected to
+  # reauthenticate before spawning a lab.
+  # @default -- `jupyterhub.cull.maxAge` if lab culling is enabled, else none
+  minimumTokenLifetime: null
+
+  # -- Resource limits and requests for the Hub
+  # @default -- See `values.yaml`
+  resources:
+    limits:
+      cpu: "1"
+      memory: "512Mi"
+    requests:
+      cpu: "6m"
+      memory: "130Mi"
+
   timeout:
-    # -- Timeout for JupyterLab to start. Currently this sometimes takes over
-    # 60 seconds for reasons we don't understand.
+    # -- Timeout for JupyterLab to start in seconds. Currently this sometimes
+    # takes over 60 seconds for reasons we don't understand.
     startup: 90
 
 # JupyterHub proxy configuration handled directly by this chart rather than by
 # Zero to JupyterHub.
 proxy:
+  chp:
+
+    # -- Resource limits and requests for proxy pod
+    # @default -- See `values.yaml`
+    resources:
+      limits:
+        cpu: "150m"
+        memory: "200Mi"
+      requests:
+        cpu: "5m"
+        memory: "30Mi"
+
   ingress:
     # -- Additional annotations to add to the proxy ingress (also used to talk
     # to JupyterHub and all user labs)
     # @default -- Increase `proxy-read-timeout` and `proxy-send-timeout` to 5m
     annotations:
-      nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
-      nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "300"  # 5 minutes
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "300"  # 5 minutes
 
 # Configuration for Nublado secrets management.
 secrets:
-  # -- Whether to install the T&S SAL Kafka secret.
-  installTsSalKafkaSecret: false
-
   # -- Whether to use the new secrets management mechanism. If enabled, the
   # Vault nublado secret will be split into a nublado secret for JupyterHub
   # and a nublado-lab-secret secret used as a source for secret values for the
@@ -384,13 +411,17 @@ jupyterhub:
       name: "ghcr.io/lsst-sqre/nublado-jupyterhub"
 
       # -- Tag of image to use for JupyterHub
-      tag: "4.0.2"
+      tag: "6.3.0"
 
     # -- Resource limits and requests
+    # @default -- See `values.yaml`
     resources:
       limits:
         cpu: "900m"
         memory: "1Gi"  # Should support about 200 users
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
 
     db:
       # -- Type of database to use
@@ -399,6 +430,9 @@ jupyterhub:
       # -- Database password (not used)
       # @default -- Comes from nublado-secret
       password: "true"
+
+      # -- Whether to automatically update DB schema at Hub start
+      upgrade: false
 
       # -- URL of PostgreSQL server
       # @default -- Use the in-cluster PostgreSQL installed by Phalanx
@@ -477,9 +511,9 @@ jupyterhub:
         # each user's lab environment in its own namespace
         interNamespaceAccessLabels: "accept"
 
-        # This currently causes Minikube deployment in GH-actions to fail.
+        # This currently causes Minikube deployment in GitHub Actions to fail.
         # We want it sometime but it's not critical; it will help with
-        # scale-down
+        # scale-down.
         # pdb:
         #   enabled: true
         #   minAvailable: 1
@@ -498,12 +532,12 @@ jupyterhub:
 
     # -- Default idle timeout before the lab is automatically deleted in
     # seconds
-    # @default -- 2592000 (30 days)
-    timeout: 2592000
+    # @default -- 432000 (5 days)
+    timeout: 432000
 
     # -- How frequently to check for idle labs in seconds
-    # @default -- 600 (10 minutes)
-    every: 600
+    # @default -- 300 (5 minutes)
+    every: 300
 
     # -- Whether to log out the server when culling their lab
     users: true
@@ -512,8 +546,8 @@ jupyterhub:
     removeNamedServers: true
 
     # -- Maximum age of a lab regardless of activity
-    # @default -- 5184000 (60 days)
-    maxAge: 5184000
+    # @default -- 2160000 (25 days)
+    maxAge: 2160000
 
   scheduling:
     userScheduler:
@@ -537,11 +571,21 @@ cloudsql:
     # -- Cloud SQL Auth Proxy image to use
     repository: "gcr.io/cloudsql-docker/gce-proxy"
 
+    # -- Resource requests and limits for Cloud SQL pod
+    # @default -- See `values.yaml`
+    resources:
+      limits:
+        cpu: "50m"
+        memory: "64Mi"
+      requests:
+        cpu: "1m"
+        memory: "10Mi"
+
     # -- Pull policy for Cloud SQL Auth Proxy images
     pullPolicy: "IfNotPresent"
 
     # -- Cloud SQL Auth Proxy tag to use
-    tag: "1.33.16"
+    tag: "1.37.0"
 
   # -- Instance connection name for a Cloud SQL PostgreSQL instance
   # @default -- None, must be set if Cloud SQL Auth Proxy is enabled
@@ -567,7 +611,7 @@ cloudsql:
   # `cloud-sql-proxy` Kubernetes service account and has the `cloudsql.client`
   # role
   # @default -- None, must be set if Cloud SQL Auth Proxy is enabled
-  serviceAccount: ""
+  serviceAccount: null
 
   # -- Tolerations for the Cloud SQL Auth Proxy pod
   tolerations: []
@@ -577,12 +621,12 @@ cloudsql:
 global:
   # -- Base URL for the environment
   # @default -- Set by Argo CD
-  baseUrl: ""
+  baseUrl: null
 
   # -- Host name for ingress
   # @default -- Set by Argo CD
-  host: ""
+  host: null
 
   # -- Base path for Vault secrets
   # @default -- Set by Argo CD
-  vaultSecretsPath: ""
+  vaultSecretsPath: null

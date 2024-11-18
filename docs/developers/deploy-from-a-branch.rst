@@ -2,7 +2,7 @@
 Deploying from a branch for development
 #######################################
 
-When developing applications and their :doc:`Helm charts <write-a-helm-chart>`, it's useful to temporarily deploy from a branch of Phalanx on :doc:`designated development environments </environments/index>` before merging to Phalanx's default branch.
+When developing applications and their :doc:`Helm charts <helm-chart/index>`, it's useful to temporarily deploy from a branch of Phalanx on :doc:`designated development environments </environments/index>` before merging to Phalanx's default branch.
 
 Some use cases include:
 
@@ -16,12 +16,15 @@ Through this process it is possible to develop an application in a fairly tight 
    This page focuses on using a development environment to iteratively develop and test changes to an application, ultimately yielding a application upgrade in Phalanx.
    You can achieve the same result without the iterative deployment testing by following the steps in :doc:`upgrade`.
 
+   If you are deploying an application in an environment where it is not currently running, either because the application is brand new or because you're adding it to an additional environment, see :doc:`switch-environment-to-branch`.
+
 .. _deploy-branch-prep:
 
 Preparing and pushing a branch
 ==============================
 
 Start by creating a branch of the `phalanx repository`_ and editing your application.
+Do not use a GitHub fork; the steps below require that your change be on a branch in that repository.
 
 You can make many types of edits to the application.
 The most straightforward changes are updates to your application's Docker images or the Helm sub-charts the application depends on.
@@ -182,8 +185,6 @@ Once your branch is merged, remember to reset your application's Argo CD ``Appli
    - Finally, click on the :guilabel:`Save` button.
 
 #. In the application's page in Argo CD, click on the :guilabel:`Sync` button to redeploy the application from the default branch.
-
-Alternatively, you can find the application in the ``science-platform`` Argo CD application and sync it from there to reset the default branch and any other settings you changed.
 
 Next steps
 ==========

@@ -3,7 +3,7 @@ Migrating to the new secrets management system
 ##############################################
 
 We introduced a new command-line-driven secrets management system for Phalanx environments in September of 2023.
-This page documents how to migrate to the new system from the older scripts in :file:`installer`.
+This page documents how to migrate to the new system.
 
 These instructions assume that, if you are using 1Password for static secrets, you have already set up a 1Password vault and enabled the :px-app:`1Password Connect server <onepassword-connect>` for this environment.
 If you have not yet done this, see :doc:`/applications/onepassword-connect/add-new-environment`.
@@ -13,28 +13,10 @@ In all :command:`phalanx` commands listed below, replace ``<environment>`` with 
 Change Vault configuration
 ==========================
 
-By default, :px-app:`vault-secrets-operator` is configured to use a read token stored in a ``vault-secrets-operator`` ``Secret`` resource.
+Previously, :px-app:`vault-secrets-operator` was configured to use a read token stored in a ``vault-secrets-operator`` ``Secret`` resource.
 The new secret management system uses Vault AppRoles instead, which are the recommeded authentication approach for services.
 
-#. Override the ``vault-secrets-operator`` configuration to use an AppRole by adding the following block to :file:`applications/vault-secrets-operator/values-{environment}.yaml` for your environment:
-
-   .. code-block:: yaml
-
-      vault-secrets-operator:
-        environmentVars:
-          - name: VAULT_ROLE_ID
-            valueFrom:
-              secretKeyRef:
-                name: vault-credentials
-                key: VAULT_ROLE_ID
-          - name: VAULT_SECRET_ID
-            valueFrom:
-              secretKeyRef:
-                name: vault-credentials
-                key: VAULT_SECRET_ID
-        vault:
-          authMethod: approle
-
+#. Delete the override in the ``vault-secrets-operator`` configuration to use an AppRole by deleting the configuration block in :file:`applications/vault-secrets-operator/values-{environment}.yaml` for your environment.
    If your environment was already using AppRoles, you can skip this step.
 
    Don't sync the ``vault-secrets-operator`` application yet.
@@ -45,7 +27,7 @@ The new secret management system uses Vault AppRoles instead, which are the reco
 
    .. code-block:: yaml
 
-      vaultPathPrefix: secret/phalanx/idfdev
+      vaultPathPrefix: "secret/phalanx/idfdev"
 
    Note that the last component of the path now uses the short environment name, not the FQDN of the environment.
 
@@ -136,17 +118,10 @@ Update secrets
    This will create a YAML file listing all applications and their required static secrets, based on their configuration for your environment.
 
    Then, what you do depends on whether you are using 1Password as a source of static secrets or not.
+   See :doc:`add-new-secret` for detailed instructions on how to add static secrets for an application.
+   You will need to do this for every application.
 
-   - *If you are using 1Password*, add those static secrets to the 1Password vault for this environment.
-     See :ref:`dev-add-onepassword` for detailed instructions on how to add static secrets for an application.
-     You will need to do this for every application.
-     Don't forget to :ref:`add a pull secret <admin-onepassword-pull-secret>` if your environment needs one.
-
-   - *If you are not using 1Password*, edit :file:`static-secrets.yaml` and fill in the values of all of the static secrets.
-     Or, alternately, just put the static secrets directly into Vault via whatever mechanism works for you and do not supply a static secrets file.
-     In the second case, you will need to be sure to store the secrets in the format expected by Phalanx (one secret per application, with keys and values for each Phalanx secret needed by that application).
-
-   To obtain the current values of static secrets, look either in the old ``RSP-Vault`` 1Password vault (for SQuaRE-managed environments) or use the :command:`vault kv get` command to read the current value of the static secret out of Vault (copied to the new path in the previous step).
+   To obtain the current values of static secrets, use the :command:`vault kv get` command to read the current value of the static secret out of Vault (copied to the new path in the previous step).
 
    For example, to see all the current secrets for the application ``nublado``, run:
 
@@ -158,6 +133,8 @@ Update secrets
 
 #. If you are using 1Password as the source for static secrets, set ``OP_CONNECT_TOKEN`` to the 1Password Connect token for this environment.
    For SQuaRE-managed environments, this can be found in the ``RSP 1Password tokens`` item in the SQuaRE 1Password vault.
+
+   Also, add the :ref:`pull secret <admin-onepassword-pull-secret>` and :ref:`Vault write token <admin-onepassword-vault-token>` to the 1Password vault for this environment if appropriate.
 
 #. Check what secrets are missing or incorrect and fix them.
 
@@ -200,10 +177,13 @@ Switch to the new secrets tree
    Applications to review:
 
    - :px-app:`datalinker` (``config.separateSecrets``)
-   - :px-app:`nublado` (``secrets.templateSecrets``)
+   - :px-app:`nightreport` (``global.tsVaultSecretsPath``)
+   - :px-app:`nublado` (``hub.internalDatabase``, ``secrets.templateSecrets``)
    - :px-app:`obsloctap` (``config.separateSecrets``)
    - :px-app:`plot-navigator` (``config.separateSecrets``)
    - :px-app:`production-tools` (``config.separateSecrets``)
+   - :px-app:`rubintv` (``rubintv.separateSecrets``, ``global.tsVaultSecretsPath``)
+   - :px-app:`rubintv-dev` (``rubintv.separateSecrets``, ``global.tsVaultSecretsPath``)
 
 #. You're now ready to test the new secrets tree.
    You can do this on a branch that contains the changes you made above.

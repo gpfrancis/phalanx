@@ -5,9 +5,13 @@
    * - Root domain
      - `{{ env.fqdn }} <https://{{ env.fqdn }}>`__
    * - Identity provider
-     - {{ env.identity_provider.value }}
+     - {{ env.gafaelfawr.provider.value }}{% if env.gafaelfawr.provider_hostname %} ({{ env.gafaelfawr.provider_hostname }}){% endif %}{% if env.gafaelfawr.comanage_hostname %} (COmanage: `{{ env.gafaelfawr.comanage_hostname }} <https://{{ env.gafaelfawr.comanage_hostname }}/>`__){% endif %}
+   {%- if env.argocd.url %}
    * - Argo CD
-     - {% if env.argocd_url %}{{ env.argocd_url }}{% else %}N/A{% endif %}
+     - {{ env.argocd.url }}
+   {%- endif %}
+   * - Argo CD identity provider
+     - {{ env.argocd.provider.value }}{% if env.argocd.provider_hostname %} ({{ env.argocd.provider_hostname }}){% endif %}
    {%- if env.gcp %}
    * - Google console
      - - `Log Explorer <https://console.cloud.google.com/logs/query?project={{ env.gcp.project_id }}>`__
@@ -41,13 +45,13 @@
             -
             {%- endif %}
           {% endfor %}
-   {%- if env.gafaelfawr_scopes %}
+   {%- if env.gafaelfawr.scopes %}
    * - Gafaelfawr groups
      - .. list-table::
 
           * - Scope
             - Groups
-          {% for scope_groups in env.gafaelfawr_scopes %}
+          {% for scope_groups in env.gafaelfawr.scopes %}
           * - ``{{ scope_groups.scope }}``
             - - {{ scope_groups.groups_as_rst()[0] }}
             {%- if scope_groups.groups|length > 1 %}
@@ -57,11 +61,20 @@
             {%- endif %}
           {%- endfor %}
    {%- endif %}
-   {%- if env.argocd_rbac %}
+   {%- if env.argocd.rbac %}
    * - Argo CD RBAC
-     - .. csv-table::
-          {% for line in env.argocd_rbac_csv %}
-          {{ line }}
+     - .. list-table::
+
+          * - Role
+            - Groups or users
+          {% for role, members in env.argocd.rbac.roles.items() %}
+          * - ``{{ role }}``
+            - - {{ members[0] }}
+            {%- if members|length > 1 %}
+            {%- for member in members[1:] %}
+              - {{ member }}
+            {%- endfor %}
+            {%- endif %}
           {%- endfor %}
    {%- endif %}
 {%- if env.gcp %}
@@ -72,5 +85,5 @@ To obtain Kubernetes admin credentials for this cluster, run:
 
    gcloud container clusters get-credentials {{ env.gcp.cluster_name }} --project {{ env.gcp.project_id }} --region {{ env.gcp.region }}
 
-For details on how to set up :command:`gcloud` and the necessarily plugins, see :doc:`/admin/infrastructure/google/credentials`.
+For details on how to set up :command:`gcloud` and the necessary plugins, see :doc:`/admin/infrastructure/google/credentials`.
 {%- endif %}

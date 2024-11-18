@@ -1,8 +1,10 @@
-butlerRepositoryIndex: "s3://rubin-summit-users/data-repos.yaml"
-fqdn: usdf-rsp-int.slac.stanford.edu
-name: usdfint
+fqdn: "usdf-rsp-int.slac.stanford.edu"
+name: "usdfint"
+appOfAppsName: "science-platform"
+butlerServerRepositories:
+  embargo: "https://usdf-rsp-int.slac.stanford.edu/api/butler/repo/embargo/butler.yaml"
 vaultUrl: "https://vault.slac.stanford.edu"
-vaultPathPrefix: secret/rubin/usdf-rsp-int
+vaultPathPrefix: "secret/rubin/usdf-rsp-int"
 
 applications:
   # This environment uses an ingress managed in a separate Kubernetes cluster,
@@ -10,6 +12,7 @@ applications:
   cert-manager: false
   ingress-nginx: false
 
+  butler: true
   datalinker: true
   livetap: true
   mobu: true
@@ -18,6 +21,7 @@ applications:
   portal: true
   postgres: true
   sasquatch: true
+  schedview-snapshot: true
   semaphore: true
   ssotap: true
   squareone: true

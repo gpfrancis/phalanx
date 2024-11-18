@@ -15,7 +15,7 @@ Jira API read-only proxy for Times Square users.
 | autoscaling.maxReplicas | int | `100` | Maximum number of jira-data-proxy deployment pods |
 | autoscaling.minReplicas | int | `1` | Minimum number of jira-data-proxy deployment pods |
 | autoscaling.targetCPUUtilizationPercentage | int | `80` | Target CPU utilization of jira-data-proxy deployment pods |
-| config.jiraUrl | string | `"https://jira.lsstcorp.org/"` | Jira base URL |
+| config.jiraUrl | string | `"https://rubinobs.atlassian.net/"` | Jira base URL |
 | config.logLevel | string | `"info"` | Logging level |
 | global.baseUrl | string | Set by Argo CD | Base URL for the environment |
 | global.host | string | Set by Argo CD | Host name for ingress |
@@ -28,5 +28,5 @@ Jira API read-only proxy for Times Square users.
 | nodeSelector | object | `{}` | Node selection rules for the jira-data-proxy deployment pod |
 | podAnnotations | object | `{}` | Annotations for the jira-data-proxy deployment pod |
 | replicaCount | int | `2` | Number of web deployment pods to start |
-| resources | object | `{}` | Resource limits and requests for the jira-data-proxy deployment pod |
+| resources | object | See `values.yaml` | Resource limits and requests for the jira-data-proxy deployment pod |
 | tolerations | list | `[]` | Tolerations for the jira-data-proxy deployment pod |

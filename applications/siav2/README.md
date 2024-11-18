@@ -22,13 +22,13 @@ Simple Image Access v2 service
 | obsCoreTable | string | `"ivoa.ObsCore"` | ObsCore table on the TAP service to query |
 | podAnnotations | object | `{}` | Annotations for the siav2 deployment pod |
 | replicaCount | int | `1` | Number of web deployment pods to start |
-| resources | object | `{}` | Resource limits and requests for the siav2 deployment pod |
+| resources | object | See `values.yaml` | Resource limits and requests for the siav2 deployment pod |
 | tapService | string | `"tap"` | Local TAP service endpoint to query |
 | tolerations | list | `[]` | Tolerations for the siav2 deployment pod |
 | uws.affinity | object | `{}` | Affinity rules for the UWS database pod |
 | uws.image.pullPolicy | string | `"IfNotPresent"` | Pull policy for the UWS database image |
 | uws.image.repository | string | `"library/postgres"` | UWS database image to use |
-| uws.image.tag | string | `"16.2"` | Tag of UWS database image to use |
+| uws.image.tag | string | `"16.4"` | Tag of UWS database image to use |
 | uws.nodeSelector | object | `{}` | Node selection rules for the UWS database pod |
 | uws.podAnnotations | object | `{}` | Annotations for the UWS databse pod |
 | uws.resources | object | `{"limits":{"cpu":2,"memory":"4Gi"},"requests":{"cpu":0.25,"memory":"1Gi"}}` | Resource limits and requests for the UWS database pod |

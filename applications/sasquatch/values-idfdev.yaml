@@ -4,15 +4,25 @@ strimzi-kafka:
       tls:
         enabled: true
       bootstrap:
-        loadBalancerIP: "34.72.64.180"
+        loadBalancerIP: ""
         host: sasquatch-dev-kafka-bootstrap.lsst.cloud
       brokers:
-        - loadBalancerIP: "34.66.20.239"
+        - broker: 0
+          loadBalancerIP: ""
           host: sasquatch-dev-kafka-0.lsst.cloud
-        - loadBalancerIP: "35.192.19.206"
+        - broker: 1
+          loadBalancerIP: ""
           host: sasquatch-dev-kafka-1.lsst.cloud
-        - loadBalancerIP: "34.71.207.19"
+        - broker: 2
+          loadBalancerIP: ""
           host: sasquatch-dev-kafka-2.lsst.cloud
+    resources:
+      requests:
+        memory: 16Gi
+        cpu: 2
+      limits:
+        memory: 16Gi
+        cpu: 2
   users:
     replicator:
       enabled: true
@@ -22,6 +32,17 @@ strimzi-kafka:
       enabled: true
     kafkaConnectManager:
       enabled: true
+  kraft:
+    enabled: true
+  kafkaController:
+    enabled: true
+    resources:
+      requests:
+        memory: 16Gi
+        cpu: "2"
+      limits:
+        memory: 16Gi
+        cpu: "2"
 
   registry:
     ingress:
@@ -48,14 +69,10 @@ telegraf-kafka-consumer:
   kafkaConsumers:
     test:
       enabled: true
+      database: "telegraf-kafka-consumer-v1"
       replicaCount: 1
       topicRegexps: |
         [ "lsst.Test.*" ]
-    atmcs:
-      enabled: false
-      replicaCount: 1
-      topicRegexps: |
-        [ ".*ATMCS" ]
 
 kafdrop:
   cmdArgs: "--message.format=AVRO --topic.deleteEnabled=true --topic.createEnabled=true"

@@ -1,15 +1,5 @@
 # These four settings should be set in each environment values-*.yaml file.
 
-# -- Butler repository index URI to use for this environment, for services that
-# connect directly to the Butler database.
-# @default -- None, must be set
-butlerRepositoryIndex: ""
-
-# -- Butler repositories that can be accessed via Butler server, as a
-# dictionary from repository label to URI.
-# @default -- None, must be set
-butlerServerRepositories: {}
-
 # -- Name of the environment
 # @default -- None, must be set
 name: ""
@@ -18,6 +8,15 @@ name: ""
 # @default -- None, must be set
 fqdn: ""
 
+# -- Name of the parent Argo CD app-of-apps that manages all the applications
+# enabled for this environment
+appOfAppsName: "app-of-apps"
+
+# -- Butler repositories that can be accessed via Butler server, as a
+# dictionary from repository label to URI.
+# @default -- None, must be set
+butlerServerRepositories: {}
+
 # -- URL of the repository for all applications
 repoUrl: https://github.com/lsst-sqre/phalanx.git
 
@@ -25,7 +24,7 @@ repoUrl: https://github.com/lsst-sqre/phalanx.git
 targetRevision: "main"
 
 # -- URL of Vault server for this environment
-vaultUrl: "https://vault.lsst.codes/"
+vaultUrl: "https://vault.lsst.cloud/"
 
 # -- Prefix for Vault secrets for this environment
 # @default -- None, must be set
@@ -58,6 +57,9 @@ applications:
   # -- Enable the checkerboard application
   checkerboard: false
 
+  # -- Enable the cm-service application
+  cm-service: false
+
   # -- Enable the control-system-test application
   control-system-test: false
 
@@ -70,12 +72,18 @@ applications:
   # -- Enable the exposurelog application
   exposurelog: false
 
+  # -- Enable the fastapi-bootcamp application
+  fastapi-bootcamp: false
+
   # -- Enable the filestore-backup application
   filestore-backup: false
 
   # -- Enable the Gafaelfawr application. This is required by Phalanx since
   # most other applications use `GafaelfawrIngress`
   gafaelfawr: true
+
+  # -- Enable the ghostwriter application
+  ghostwriter: false
 
   # -- Enable the giftless application
   giftless: false
@@ -94,9 +102,6 @@ applications:
 
   # -- Enable the kubernetes-replicator application
   kubernetes-replicator: false
-
-  # -- Enable the linters application
-  linters: false
 
   # -- Enable the livetap application
   livetap: false
@@ -122,6 +127,9 @@ applications:
   # -- Enable the nublado application (v3 of the Notebook Aspect)
   nublado: false
 
+  # -- Enable the obsenv-management application
+  obsenv-management: false
+
   # -- Enable the obssys control system application
   obssys: false
 
@@ -145,14 +153,20 @@ applications:
   # supported for use cases such as minikube test deployments.
   postgres: false
 
+  # -- Enable the ppdb-replication application
+  ppdb-replication: false
+
   # -- Enable the rubintv application
   rubintv: false
+
+  # -- Enable the rubintv-dev application
+  rubintv-dev: false
 
   # -- Enable the sasquatch application
   sasquatch: false
 
-  # -- Enable the schedview-prenight application
-  schedview-prenight: false
+  # -- Enable the sasquatch-backpack application
+  sasquatch-backpack: false
 
   # -- Enable the schedview-snapshot application
   schedview-snapshot: false
@@ -175,6 +189,9 @@ applications:
   # -- Enable the prompt-proto-service-hsc application
   prompt-proto-service-hsc: false
 
+  # -- Enable the prompt-proto-service-hsc-gpu application
+  prompt-proto-service-hsc-gpu: false
+
   # -- Enable the prompt-proto-service-latiss application
   prompt-proto-service-latiss: false
 
@@ -184,11 +201,11 @@ applications:
   # -- Enable the prompt-proto-service-lsstcomcam application
   prompt-proto-service-lsstcomcam: false
 
+  # -- Enable the prompt-proto-service-lsstcomcamsim application
+  prompt-proto-service-lsstcomcamsim: false
+
   # -- Enable the semaphore application
   semaphore: false
-
-  # -- Enable the sherlock application
-  sherlock: false
 
   # -- Enable the sqlproxy-cross-project application
   sqlproxy-cross-project: false
@@ -214,12 +231,23 @@ applications:
   # -- Enable the telegraf-ds application
   telegraf-ds: false
 
+  # -- Enable the templatebot application
+  templatebot: false
+
   # -- Enable the times-square application
   times-square: false
+
+  # -- Enable the unfurlbot application
+  unfurlbot: false
 
   # -- Enable the uws application. This includes the dmocps control system
   # application.
   uws: false
+
+  # -- Enable the vault application. This is the actual vault storage
+  # and there should only be one production and one development instance
+  # globally.
+  vault: false
 
   # -- Enable the vault-secrets-operator application. This is required for all
   # environments.
@@ -227,6 +255,9 @@ applications:
 
   # -- Enable the vo-cutouts application
   vo-cutouts: false
+
+# -- Add labels for application namespaces.
+namespaceLabels: {}
 
 # The following settings are used for the control system
 controlSystem:

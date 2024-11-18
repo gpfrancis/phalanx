@@ -22,6 +22,12 @@ strimzi-kafka:
       enabled: true
     promptProcessing:
       enabled: true
+    consdb:
+      enabled: true
+  kraft:
+    enabled: true
+  kafkaController:
+    enabled: true
 
 influxdb:
   ingress:
@@ -124,7 +130,7 @@ kafka-connect-manager:
         timestamp: "timestamp"
         connectInfluxDb: "lsst.verify"
         topicsRegex: "lsst.verify.*"
-        tags: dataset_tag,band,instrument,skymap,detector,physical_filter,tract,exposure,patch,visit,run
+        tags: dataset_tag,band,instrument,skymap,detector,physical_filter,tract,exposure,patch,visit,run,pipeline
       lsstlf:
         enabled: true
         timestamp: "timestamp"
@@ -151,6 +157,7 @@ rest-proxy:
   kafka:
     topics:
       - test.next-visit
+      - test.next-visit-job
     topicPrefixes:
       - test
       - lsst.dm

@@ -1,5 +1,6 @@
 name: "roundtable-dev"
 fqdn: "roundtable-dev.lsst.cloud"
+appOfAppsName: "roundtable"
 gcp:
   projectId: "roundtable-dev-abe2"
   region: "us-central1"
@@ -12,7 +13,9 @@ vaultPathPrefix: "secret/phalanx/roundtable-dev"
 applications:
   checkerboard: false
   giftless: true
+  jira-data-proxy: true
   kubernetes-replicator: true
+  mobu: true
   monitoring: true
   onepassword-connect: true
   ook: true
@@ -22,3 +25,8 @@ applications:
   squareone: true
   strimzi: true
   strimzi-access-operator: true
+  telegraf: true
+  telegraf-ds: true
+  templatebot: true
+  unfurlbot: true
+  vault: true

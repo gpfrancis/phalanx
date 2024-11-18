@@ -1,15 +1,26 @@
-name: summit
-fqdn: summit-lsp.lsst.codes
-vaultPathPrefix: secret/k8s_operator/summit-lsp.lsst.codes
+name: "summit"
+fqdn: "summit-lsp.lsst.codes"
+appOfAppsName: "science-platform"
+onepassword:
+  connectUrl: "https://roundtable.lsst.cloud/1password"
+  vaultTitle: "RSP summit-lsp.lsst.codes"
+vaultPathPrefix: "secret/phalanx/summit"
 
 applications:
+  consdb: true
   exposurelog: true
+  mobu: true
   narrativelog: true
+  nightreport: true
   nublado: true
   portal: true
-  postgres: true
+  rapid-analysis: true
+  rubintv: true
+  rubintv-dev: true
   sasquatch: true
+  sasquatch-backpack: true
   squareone: true
   strimzi: true
   telegraf: true
   telegraf-ds: true
+  uws: true

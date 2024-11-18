@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from enum import Enum
+from typing import Self
 
 from pydantic import (
     AnyHttpUrl,
@@ -21,12 +23,14 @@ from .applications import Application, ApplicationInstance
 from .secrets import Secret
 
 __all__ = [
+    "ArgoCDDetails",
     "ControlSystemConfig",
     "Environment",
     "EnvironmentBaseConfig",
     "EnvironmentConfig",
     "EnvironmentDetails",
     "GCPMetadata",
+    "GafaelfawrDetails",
     "GafaelfawrGitHubGroup",
     "GafaelfawrGitHubTeam",
     "GafaelfawrScope",
@@ -149,7 +153,9 @@ class ControlSystemConfig(CamelCaseModel):
 
 
 class EnvironmentBaseConfig(CamelCaseModel):
-    """Configuration common to `~phalanx.models.environments.EnvironmentConfig`
+    """Environment configuration options.
+
+    Configuration common to `~phalanx.models.environments.EnvironmentConfig`
     and `~phalanx.models.environments.Environment`.
     """
 
@@ -163,10 +169,17 @@ class EnvironmentBaseConfig(CamelCaseModel):
         ),
     )
 
-    butler_repository_index: str | None = Field(
+    app_of_apps_name: str | None = Field(
         None,
-        title="Butler repository index URL",
-        description="URL to Butler repository index",
+        title="Argo CD app-of-apps name",
+        description=(
+            "Name of the parent Argo CD app-of-apps that manages all of the"
+            " enabled applications. This is required in the merged values"
+            " file that includes environment overrides, but the environment"
+            " override file doesn't need to set it, so it's marked as"
+            " optional for schema checking purposes to allow the override"
+            " file to be schema-checked independently."
+        ),
     )
 
     butler_server_repositories: dict[str, AnyUrl] | None = Field(
@@ -185,6 +198,15 @@ class EnvironmentBaseConfig(CamelCaseModel):
             "If this environment is hosted on Google Cloud Platform,"
             " metadata about the hosting project, location, and other details."
             " Used to generate additional environment documentation."
+        ),
+    )
+
+    namespace_labels: dict[str, dict[str, str]] | None = Field(
+        None,
+        title="Labels for application namespaces",
+        description=(
+            "A mapping of application name to a set of labels that are"
+            " included in the namespace."
         ),
     )
 
@@ -352,11 +374,29 @@ class Environment(EnvironmentBaseConfig):
         return secrets
 
 
+class ArgoCDRBAC(BaseModel):
+    """Argo CD RBAC rules."""
+
+    roles: dict[str, list[str]]
+    """Mapping of roles to list of users or groups."""
+
+    @classmethod
+    def from_csv(cls, csv: str) -> Self:
+        """Parse the RBAC :file:`policy.csv` into the RBAC configuration."""
+        roles = defaultdict(list)
+        for line in csv.splitlines():
+            rule = [i.strip() for i in line.split(",")]
+            if rule[0] == "g":
+                roles[rule[2]].append(rule[1])
+        return cls(roles={r: sorted(m) for r, m in roles.items()})
+
+
 class IdentityProvider(Enum):
     """Type of identity provider used by Gafaelfawr."""
 
     CILOGON = "CILogon"
     GITHUB = "GitHub"
+    GOOGLE = "Google"
     OIDC = "OpenID Connect"
     NONE = "None"
 
@@ -404,6 +444,38 @@ class GafaelfawrScope(BaseModel):
         return result
 
 
+class ArgoCDDetails(BaseModel):
+    """Details about the Argo CD configuration for an environment."""
+
+    provider: IdentityProvider
+    """Type of identity provider used for Argo CD."""
+
+    provider_hostname: str | None = None
+    """Hostname of Argo CD identity provider, if meaningful."""
+
+    rbac: ArgoCDRBAC | None = None
+    """Argo CD RBAC configuration."""
+
+    url: str | None = None
+    """URL for the Argo CD UI."""
+
+
+class GafaelfawrDetails(BaseModel):
+    """Details about the Gafaelfawr configuration for an environment."""
+
+    provider: IdentityProvider
+    """Type of identity provider used by Gafaelfawr in this environment."""
+
+    provider_hostname: str | None = None
+    """Hostname of upstream identity provider, if meaningful."""
+
+    comanage_hostname: str | None = None
+    """Hostname of COmanage instance, if COmanage is in use."""
+
+    scopes: list[GafaelfawrScope] = []
+    """Gafaelfawr scopes and their associated groups."""
+
+
 class EnvironmentDetails(EnvironmentBaseConfig):
     """Full details about an environment, including auth and Argo CD.
 
@@ -416,26 +488,11 @@ class EnvironmentDetails(EnvironmentBaseConfig):
     applications: list[Application]
     """List of enabled applications."""
 
-    argocd_url: str | None
-    """URL for the Argo CD UI."""
+    argocd: ArgoCDDetails
+    """Details about the Argo CD configuration."""
 
-    argocd_rbac: list[list[str]]
-    """Argo CD RBAC configuration as a list of parsed CSV lines."""
-
-    identity_provider: IdentityProvider
-    """Type of identity provider used by Gafaelfawr in this environment."""
-
-    gafaelfawr_scopes: list[GafaelfawrScope]
-    """Gafaelfawr scopes and their associated groups."""
-
-    @property
-    def argocd_rbac_csv(self) -> list[str]:
-        """RBAC configuration formatted for an reStructuredText csv-table."""
-        result = []
-        for rule in self.argocd_rbac:
-            formatted = [f"``{r}``" for r in rule]
-            result.append(",".join(formatted))
-        return result
+    gafaelfawr: GafaelfawrDetails
+    """Details about the Gafaelfawr configuration."""
 
 
 class PhalanxConfig(BaseModel):

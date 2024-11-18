@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import json
+from contextlib import suppress
+from datetime import timedelta
 from pathlib import Path
 
 import jinja2
+from hvac.exceptions import Forbidden
 from safir.datetime import current_datetime, format_datetime_for_logging
 
 from ..constants import VAULT_WRITE_TOKEN_WARNING_LIFETIME
+from ..exceptions import VaultPathConflictError
 from ..models.environments import EnvironmentConfig
 from ..models.vault import VaultAppRole, VaultToken, VaultTokenMetadata
 from ..storage.config import ConfigStorage
@@ -71,6 +75,7 @@ class VaultService:
         old path and writing them to the default path for the environment.
         Any existing secrets in Vault for the environment with the same
         application names as in the old path will be overwritten.
+        Subdirectories are skipped.
 
         Parameters
         ----------
@@ -87,13 +92,26 @@ class VaultService:
         config = self._config.load_environment_config(environment)
         new_vault_client = self._vault.get_vault_client(config)
         old_vault_client = self._vault.get_vault_client(config, old_path)
+        if new_vault_client.path == old_vault_client.path:
+            raise VaultPathConflictError(old_vault_client.path)
         secrets = old_vault_client.list_application_secrets()
+        print(
+            "Copying secrets from",
+            old_vault_client.path,
+            "to",
+            new_vault_client.path,
+        )
         for name in sorted(secrets):
+            if name.endswith("/"):
+                print("Skipping subdirectory", name)
+                continue
             secret = old_vault_client.get_application_secret(name)
             new_vault_client.store_application_secret(name, secret)
             print("Copied Vault secret for", name)
 
-    def create_read_approle(self, environment: str) -> VaultAppRole:
+    def create_read_approle(
+        self, environment: str, *, token_lifetime: timedelta | None = None
+    ) -> VaultAppRole:
         """Create a new Vault read AppRole for the given environment.
 
         This will create (or update) a read policy whose name is the Vault
@@ -110,6 +128,9 @@ class VaultService:
         ----------
         environment
             Name of the environment.
+        token_lifetime
+            If given, limit the token lifetime (both default and renewable) to
+            the given length of time.
 
         Returns
         -------
@@ -125,7 +146,9 @@ class VaultService:
         if approle:
             vault_client.revoke_approle_secret_ids(config.vault_read_approle)
         return vault_client.create_approle(
-            config.vault_read_approle, [config.vault_read_policy]
+            config.vault_read_approle,
+            [config.vault_read_policy],
+            token_lifetime=token_lifetime,
         )
 
     def create_write_token(
@@ -316,6 +339,11 @@ class VaultService:
         and finding all tokens whose display name match the expected display
         name of the write token for that environment.
 
+        Any accessors that cannot be retrieved are ignored, since our Vault
+        has at least one accessor that is apparently not usable by any of our
+        privileged tokens. Hopefully this won't cause duplicate write tokens
+        to be created.
+
         Parameters
         ----------
         vault_client
@@ -331,7 +359,8 @@ class VaultService:
         accessors = vault_client.list_token_accessors()
         tokens = []
         for accessor in accessors:
-            token = vault_client.get_token(accessor)
-            if token and token.display_name == config.vault_write_token:
-                tokens.append(token)
+            with suppress(Forbidden):
+                token = vault_client.get_token(accessor)
+                if token and token.display_name == config.vault_write_token:
+                    tokens.append(token)
         return tokens

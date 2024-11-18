@@ -16,8 +16,10 @@ clusterName: alert-broker
 # -- Name of the topic used by the Schema Registry to store data.
 schemaTopic: registry-schemas
 
+compatibilityLevel: None
+
 # -- Hostname for an ingress which sends traffic to the Schema Registry.
-hostname: alert-schemas-int.lsst.cloud
+hostname: usdf-alert-schemas-dev.slac.stanford.edu
 
 tls: true
 
@@ -26,10 +28,12 @@ tls: true
 schemaSync:
   image:
     # -- Repository of a container which has the alert_packet
-    # syncLatestSchemaToRegistry.py program
+    # syncLatestSchemaToRegistry.py program.
     repository: lsstdm/lsst_alert_packet
-    # -- Version of the container to use
-    tag: tickets-DM-32743
+    # -- Version of the container to use. If container isn't updating in Argo, switch to digest.
+    # tag: tickets-DM-42606
+    digest: sha256:510f9b3417f4c21a5f95f51172ce778cff18263b7448166c888f10499831cd8f
+    pullPolicy: Always
 
   # -- Subject name to use when inserting data into the Schema Registry
   subject: alert-packet

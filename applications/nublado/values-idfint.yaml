@@ -20,23 +20,25 @@ controller:
         AWS_SHARED_CREDENTIALS_FILE: "/opt/lsst/software/jupyterlab/secrets/aws-credentials.ini"
         PGPASSFILE: "/opt/lsst/software/jupyterlab/secrets/postgres-credentials.txt"
         GOOGLE_APPLICATION_CREDENTIALS: "/opt/lsst/software/jupyterlab/secrets/butler-gcs-idf-creds.json"
-        DAF_BUTLER_REPOSITORY_INDEX: "s3://butler-us-central1-repo-locations/data-int-repos.yaml"
+        DAF_BUTLER_REPOSITORY_INDEX: "https://data-int.lsst.cloud/api/butler/configs/idf-repositories.yaml"
         S3_ENDPOINT_URL: "https://storage.googleapis.com"
-        PANDA_AUTH: oidc
+        IDDS_CONFIG: "/opt/lsst/software/jupyterlab/panda/idds.cfg.client.template"
+        PANDA_AUTH: "oidc"
         PANDA_VERIFY_HOST: "off"
-        PANDA_AUTH_VO: Rubin
-        PANDA_URL_SSL: https://pandaserver-doma.cern.ch:25443/server/panda
-        PANDA_URL: http://pandaserver-doma.cern.ch:25080/server/panda
-        IDDS_CONFIG: /opt/lsst/software/jupyterlab/panda/idds.cfg.client.template
+        PANDA_AUTH_VO: "Rubin"
+        PANDA_BEHIND_REAL_LB: "true"
+        PANDA_URL_SSL: "https://usdf-panda-server.slac.stanford.edu:8443/server/panda"
+        PANDA_URL: "https://usdf-panda-server.slac.stanford.edu:8443/server/panda"
+        PANDACACHE_URL: "https://usdf-panda-server.slac.stanford.edu:8443/server/panda"
+        PANDAMON_URL: "https://usdf-panda-bigmon.slac.stanford.edu:8443/"
         PANDA_CONFIG_ROOT: "~"
-        NO_ACTIVITY_TIMEOUT: "432000"
-        CULL_KERNEL_IDLE_TIMEOUT: "432000"
-        CULL_TERMINAL_INACTIVE_TIMEOUT: "432000"
+        CULL_TERMINAL_INACTIVE_TIMEOUT: "432000"  # 5 days
+        TMPDIR: "/tmp"
       initContainers:
         - name: "inithome"
           image:
             repository: "ghcr.io/lsst-sqre/nublado-inithome"
-            tag: "4.0.2"
+            tag: "6.3.0"
           privileged: true
           volumeMounts:
             - containerPath: "/home"
@@ -89,19 +91,9 @@ controller:
 
 jupyterhub:
   hub:
-    config:
-      ServerApp:
-        shutdown_no_activity_timeout: 432000
     db:
       url: "postgresql://nublado@cloud-sql-proxy.nublado/nublado"
       upgrade: true
-  cull:
-    enabled: true
-    users: false
-    removeNamedServers: false
-    timeout: 432000
-    every: 300
-    maxAge: 2160000
 
 hub:
   internalDatabase: false

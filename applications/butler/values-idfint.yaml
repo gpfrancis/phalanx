@@ -1,4 +1,6 @@
 config:
-  indexUri: "s3://butler-us-central1-repo-locations/data-int-repos.yaml"
-  repositoryLabels:
-    - dp02
+  dp02ClientServerIsDefault: true
+  dp02PostgresUri: postgresql://postgres@sqlproxy-butler-int.sqlproxy-cross-project:5432/dp02
+  s3EndpointUrl: "https://storage.googleapis.com"
+  repositories:
+    dp02: "file:///opt/lsst/butler/config/dp02.yaml"

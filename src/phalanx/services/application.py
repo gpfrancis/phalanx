@@ -9,9 +9,9 @@ from pathlib import Path
 from typing import Any
 
 import jinja2
-import yaml
 
 from ..exceptions import ApplicationExistsError
+from ..models.applications import Project
 from ..models.environments import Environment
 from ..models.helm import HelmStarter
 from ..storage.config import ConfigStorage
@@ -88,7 +88,12 @@ class ApplicationService:
         return bool(repo_urls)
 
     def create(
-        self, name: str, starter: HelmStarter, description: str
+        self,
+        name: str,
+        *,
+        starter: HelmStarter,
+        project: Project,
+        description: str,
     ) -> None:
         """Create configuration for a new application.
 
@@ -99,6 +104,8 @@ class ApplicationService:
         starter
             Name of the Helm starter to use as the template for the
             application.
+        project
+            Argo CD project for the new application.
         description
             Short description of the application.
 
@@ -110,29 +117,13 @@ class ApplicationService:
         path = self._config.get_application_chart_path(name)
         if path.exists():
             raise ApplicationExistsError(name)
-        self._helm.create(name, starter)
-
-        # Unfortunately, Helm completely ignores the Chart.yaml in a starter
-        # so far as I can tell, so we have to load the starter Chart.yaml
-        # ourselves and replace the generated Chart.yaml with it, but
-        # preserving the substitutions that Helm does make.
-        starter_path = self._config.get_starter_path(starter)
-        chart = yaml.safe_load((starter_path / "Chart.yaml").read_text())
-        helm_chart = yaml.safe_load((path / "Chart.yaml").read_text())
-        chart["name"] = helm_chart["name"]
-        chart["description"] = description
-        if "sources" in chart:
-            chart["sources"] = [
-                s.replace("<CHARTNAME>", name) for s in chart["sources"]
-            ]
-        with (path / "Chart.yaml").open("w") as fh:
-            yaml.dump(chart, fh)
+        self._helm.create(name, description, starter)
 
         # Add the environment configuration.
-        self._create_application_template(name)
+        self._create_application_template(name, project)
 
         # Add the documentation.
-        self._create_application_docs(name, description)
+        self._create_application_docs(name, description, project)
 
     def lint(self, app_names: list[str], env_name: str | None) -> bool:
         """Lint an application with Helm.
@@ -241,7 +232,7 @@ class ApplicationService:
 
         Raises
         ------
-        HelmFailedError
+        CommandFailedError
             Raised if Helm fails.
         """
         if self.add_helm_repositories([app_name], quiet=True):
@@ -292,18 +283,13 @@ class ApplicationService:
         if environment.gcp:
             values["global.gcpProjectId"] = environment.gcp.project_id
             values["global.gcpRegion"] = environment.gcp.region
-        if environment.butler_repository_index:
-            butler_index = environment.butler_repository_index
-            values["global.butlerRepositoryIndex"] = butler_index
         if environment.butler_server_repositories:
-            values[
-                "global.butlerServerRepositories"
-            ] = _json_and_base64_encode(
-                {
-                    k: str(v)
-                    for k, v in environment.butler_server_repositories.items()
-                }
-            )
+            butler_repos = {
+                k: str(v)
+                for k, v in environment.butler_server_repositories.items()
+            }
+            butler_repos_b64 = _json_and_base64_encode(butler_repos)
+            values["global.butlerServerRepositories"] = butler_repos_b64
 
         # vault-secrets-operator gets the Vault host injected into it. Use the
         # existence of its subchart configuration tree as a cue to inject the
@@ -341,13 +327,17 @@ class ApplicationService:
 
         return values
 
-    def _create_application_template(self, name: str) -> None:
+    def _create_application_template(
+        self, name: str, project: Project
+    ) -> None:
         """Add the ``Application`` template and environment values setting.
 
         Parameters
         ----------
         name
             Name of the new application.
+        project
+            Argo CD project for the new application.
         """
         # Change the quote characters so that we aren't fighting with Helm
         # templating, which also uses {{ and }}.
@@ -355,12 +345,14 @@ class ApplicationService:
             variable_start_string="[[", variable_end_string="]]"
         )
         template = overlay.get_template("application-template.yaml.jinja")
-        application = template.render({"name": name})
-        self._config.write_application_template(name, application)
+        application = template.render({"name": name, "project": project.value})
+        self._config.write_application_template(name, project, application)
         setting = f"# -- Enable the {name} application\n{name}: false"
         self._config.add_application_setting(name, setting)
 
-    def _create_application_docs(self, name: str, description: str) -> None:
+    def _create_application_docs(
+        self, name: str, description: str, project: Project
+    ) -> None:
         """Add the documentation for a new application.
 
         This does not add the new documentation to the index page for all
@@ -375,6 +367,8 @@ class ApplicationService:
             Name of the new application.
         description
             Short description of the new application.
+        project
+            Project of the application.
 
         Raises
         ------
@@ -391,6 +385,24 @@ class ApplicationService:
         template = self._templates.get_template("application-values.md.jinja")
         values = template.render({"name": name})
         (docs_path / "values.md").write_text(values)
+
+        # Add the reference to the new documentation into the index of
+        # applications in that project.
+        index_path = (
+            self._path / "docs" / "applications" / (project.value + ".rst")
+        )
+        index = index_path.read_text().split("\n")
+        line = 0
+        while index[line] is not None and ".. toctree::" not in index[line]:
+            line += 1
+        while index[line] is not None and index[line].strip():
+            line += 1
+        line += 1
+        new_line = f"   {name}/index"
+        while index[line] and index[line].strip() and new_line >= index[line]:
+            line += 1
+        index.insert(line, new_line)
+        index_path.write_text("\n".join(index))
 
 
 def _json_and_base64_encode(obj: Any) -> str:

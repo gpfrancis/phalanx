@@ -1,5 +1,4 @@
 replicaCount: 2
-
 redis:
   persistence:
     enabled: false
@@ -7,24 +6,23 @@ redis:
 config:
   logLevel: "DEBUG"
   internalDatabase: true
+  updateSchema: False
 
   # Session length and token expiration (in minutes).
-  issuer:
-    exp_minutes: 43200  # 30 days
+  #issuer:
+  #  exp_minutes: 43200  # 30 days
 
   # github:
   #   clientId: ae314e45a6af43ea910a
 
   oidc:
     clientId: "lsst_rsp"
+    audience: "lsst_rsp"
     loginUrl: "https://login.cc.in2p3.fr/auth/realms/cc.in2p3.fr/protocol/openid-connect/auth"
     tokenUrl: "https://login.cc.in2p3.fr/auth/realms/cc.in2p3.fr/protocol/openid-connect/token"
     # scopes:
     #   - "openid"
     issuer: "https://login.cc.in2p3.fr/auth/realms/cc.in2p3.fr"
-    gidClaim: "gid_number"
-    uidClaim: "uid_number"
-    groupsClaim: "groups"
     usernameClaim: "preferred_username"
 
   ldap:
@@ -32,7 +30,8 @@ config:
     groupBaseDn: cn=groups,cn=compat,dc=cc,dc=in2p3,dc=fr
     groupObjectClass: posixGroup
     groupMemberAttr: memberUid
-    userBaseDn: cn=users,cn=account,dc=cc,dc=in2p3,dc=fr
+    groupSearchByDn: false
+    userBaseDn: cn=users,cn=accounts,dc=cc,dc=in2p3,dc=fr
     userSearchAttr: uid
     addUserGroup: false
     uidAttr: uidNumber
@@ -69,23 +68,29 @@ config:
   oidcServer:
     enabled: false
 
-  initialAdmins:
-    - "mainetti"
+  cadcBaseUuid: "df534647-a1df-4608-b08e-3af8dc291e41"
+
+  # initialAdmins:
+  #   - "mainetti"
 
   groupMapping:
     "admin:token":
-      - "lsst"
+      - "ccin2p3"
+    "admin:jupyterlab":
+      - "ccin2p3"
     "exec:admin":
-      - "lsst"
+      - "ccin2p3"
     "exec:internal-tools":
       - "lsst"
     "exec:notebook":
       - "lsst"
     "exec:portal":
       - "lsst"
-    "read:all":
-      - "lsst"
     "read:image":
       - "lsst"
     "read:tap":
+      - "lsst"
+    "write:files":
+      - "lsst"
+    "user:token":
       - "lsst"

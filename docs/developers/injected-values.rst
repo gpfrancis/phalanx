@@ -10,7 +10,7 @@ Sources later on this list override values from earlier sources.
 #. The :file:`values-{environment}.yaml` file for that application and the current environment.
 #. Values injected by Argo CD directly from the ``Application`` resource.
 
-The ``Application`` resources are found in :file:`environments/templates`.
+The ``Application`` resources are found in :file:`environments/templates/applications`.
 Unlike the :file:`values.yaml` file for the application, they have access to environment-wide configuration set by the :file:`environments/values-{environment}.yaml` files.
 
 This page describes that third group of values injected by Argo CD.
@@ -40,9 +40,6 @@ Optional injected values
 ========================
 
 The following additional values are not normally injected by the default ``Application`` template but can be added if needed by adding a new entry to the ``spec.source.helm.parameters`` key of the ``Application`` resource template.
-
-``global.butlerRepositoryIndex``
-    The URI for the Butler index for this environment, used by services that connect directly to the Butler database without using the Butler server.
 
 ``global.butlerServerRepositories``
     A mapping from Butler repository labels to URIs that is used by applications that talk to the Butler server.

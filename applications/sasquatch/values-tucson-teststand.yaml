@@ -1,11 +1,8 @@
 strimzi-kafka:
   cluster:
-    releaseLabel: pillan-prom
+    monitorLabel:
+      lsst.io/monitor: "true"
   kafka:
-    disruption_tolerance: 1
-    config:
-      auto.create.topics.enable: false
-      log.cleaner.min.compaction.lag.ms: 259200000
     storage:
       storageClassName: rook-ceph-block
     externalListener:
@@ -15,12 +12,22 @@ strimzi-kafka:
         loadBalancerIP: "140.252.146.59"
         host: sasquatch-tts-kafka-bootstrap.lsst.codes
       brokers:
-        - loadBalancerIP: "140.252.146.46"
+        - broker: 0
+          loadBalancerIP: "140.252.146.46"
           host: sasquatch-tts-kafka-0.lsst.codes
-        - loadBalancerIP: "140.252.146.58"
+        - broker: 1
+          loadBalancerIP: "140.252.146.58"
           host: sasquatch-tts-kafka-1.lsst.codes
-        - loadBalancerIP: "140.252.146.47"
+        - broker: 2
+          loadBalancerIP: "140.252.146.47"
           host: sasquatch-tts-kafka-2.lsst.codes
+    resources:
+      requests:
+        memory: 80Gi
+        cpu: 4
+      limits:
+        memory: 80Gi
+        cpu: 4
     metricsConfig:
       enabled: true
   kafkaExporter:
@@ -33,11 +40,6 @@ strimzi-kafka:
       limits:
         cpu: 500m
         memory: 128Mi
-  zookeeper:
-    storage:
-      storageClassName: rook-ceph-block
-    metricsConfig:
-      enabled: true
   users:
     tsSalKafka:
       enabled: true
@@ -54,10 +56,17 @@ strimzi-kafka:
         nginx.ingress.kubernetes.io/rewrite-target: /$2
       hostname: tucson-teststand.lsst.codes
       path: /schema-registry(/|$)(.*)
-  connect:
-    config:
-      key.converter: org.apache.kafka.connect.json.JsonConverter
-      key.converter.schemas.enable: false
+  kraft:
+    enabled: true
+  kafkaController:
+    enabled: true
+    resources:
+      requests:
+        memory: 16Gi
+        cpu: "2"
+      limits:
+        memory: 16Gi
+        cpu: "2"
 
 influxdb:
   persistence:
@@ -67,140 +76,117 @@ influxdb:
     hostname: tucson-teststand.lsst.codes
 
 telegraf-kafka-consumer:
-  enabled: false
+  enabled: true
   kafkaConsumers:
     auxtel:
       enabled: true
+      database: "efd"
       topicRegexps: |
-        [ ".*ATAOS", ".*ATDome", ".*ATDomeTrajectory", ".*ATHexapod", ".*ATPneumatics", ".*ATPtg", ".*ATMCS" ]
+        [ "lsst.sal.ATAOS", "lsst.sal.ATDome", "lsst.sal.ATDomeTrajectory", "lsst.sal.ATHexapod", "lsst.sal.ATPneumatics", "lsst.sal.ATPtg", "lsst.sal.ATMCS" ]
+      debug: true
     maintel:
       enabled: true
+      database: "efd"
       topicRegexps: |
-        [ ".*MTAOS", ".*MTDome", ".*MTDomeTrajectory", ".*MTPtg" ]
+        [ "lsst.sal.MTAOS", "lsst.sal.MTDome", "lsst.sal.MTDomeTrajectory", "lsst.sal.MTPtg" ]
+      debug: true
     mtmount:
       enabled: true
+      database: "efd"
       topicRegexps: |
-        [ ".*MTMount" ]
-    comcam:
-      enabled: true
-      topicRegexps: |
-        [ ".*CCCamera", ".*CCHeaderService", ".*CCOODS" ]
+        [ "lsst.sal.MTMount" ]
+      debug: true
     eas:
       enabled: true
+      database: "efd"
+      metric_batch_size: 100
+      flush_interval: 20s
       topicRegexps: |
-        [ ".*DIMM", ".*DSM", ".*ESS", ".*WeatherForecast" ]
+        [ "lsst.sal.DIMM", "lsst.sal.DSM", "lsst.sal.EPM", "lsst.sal.ESS", "lsst.sal.HVAC", "lsst.sal.WeatherForecast" ]
+      debug: true
     latiss:
       enabled: true
+      database: "efd"
       topicRegexps: |
-        [ ".*ATCamera", ".*ATHeaderService", ".*ATOODS", ".*ATSpectrograph" ]
+        [ "lsst.sal.ATCamera", "lsst.sal.ATHeaderService", "lsst.sal.ATOODS", "lsst.sal.ATSpectrograph" ]
+      debug: true
     m1m3:
       enabled: true
-      flush_interval: "1s"
-      metric_batch_size: 5000
-      interval: "0.1s"
+      database: "efd"
       topicRegexps: |
-        [ ".*MTM1M3" ]
+        [ "lsst.sal.MTM1M3" ]
+      debug: true
     m2:
       enabled: true
+      database: "efd"
       topicRegexps: |
-        [ ".*MTHexapod", ".*MTM2", ".*MTRotator" ]
+        [ "lsst.sal.MTHexapod", "lsst.sal.MTM2", "lsst.sal.MTRotator" ]
+      debug: true
     obssys:
       enabled: true
+      database: "efd"
       topicRegexps: |
-        [ ".*Scheduler", ".*Script", ".*ScriptQueue", ".*Watcher" ]
+        [ "lsst.sal.Scheduler", "lsst.sal.Script", "lsst.sal.ScriptQueue", "lsst.sal.Watcher" ]
+      debug: true
     ocps:
       enabled: true
+      database: "efd"
       topicRegexps: |
-        [ ".*OCPS" ]
-    pmd:
-      enabled: true
-      topicRegexps: |
-        [ ".*PMD" ]
+        [ "lsst.sal.OCPS" ]
+      debug: true
     calsys:
       enabled: true
+      database: "efd"
       topicRegexps: |
-        [ ".*ATMonochromator", ".*ATWhiteLight", ".*CBP", ".*Electrometer", ".*FiberSpectrograph", ".*LEDProjector", ".*LinearStage", ".*TunableLaser" ]
-    mtaircompressor:
+        [ "lsst.sal.CBP", "lsst.sal.Electrometer", "lsst.sal.FiberSpectrograph", "lsst.sal.LEDProjector", "lsst.sal.LinearStage", "lsst.sal.MTReflector", "lsst.sal.TunableLaser" ]
+      debug: true
+    comcam:
       enabled: true
+      database: "efd"
       topicRegexps: |
-        [ ".*MTAirCompressor" ]
-    authorize:
-      enabled: true
-      topicRegexps: |
-        [ ".*Authorize" ]
-    lasertracker:
-      enabled: true
-      topicRegexps: |
-        [ ".*LaserTracker" ]
+        [ "lsst.sal.CCCamera", "lsst.sal.CCHeaderService", "lsst.sal.CCOODS" ]
+      debug: true
     test:
       enabled: true
+      database: "efd"
       topicRegexps: |
         [ "lsst.sal.Test" ]
+      debug: true
+    mtaircompressor:
+      enabled: true
+      database: "efd"
+      topicRegexps: |
+        [ "lsst.sal.MTAirCompressor" ]
+      debug: true
+    lasertracker:
+      enabled: true
+      database: "efd"
+      topicRegexps: |
+        [ "lsst.sal.LaserTracker" ]
+      debug: true
     genericcamera:
       enabled: true
+      database: "efd"
       topicRegexps: |
-        [ ".*GCHeaderService", ".*GenericCamera" ]
-
-kafka-connect-manager:
-  influxdbSink:
-    # Based on the kafka producers configuration for the TTS
-    # https://github.com/lsst-ts/argocd-csc/blob/main/apps/kafka-producers/values-tucson-teststand.yaml
-    connectors:
-      auxtel:
-        enabled: true
-        topicsRegex: ".*ATAOS|.*ATDome|.*ATDomeTrajectory|.*ATHexapod|.*ATPneumatics|.*ATPtg|.*ATMCS"
-      maintel:
-        enabled: true
-        topicsRegex: ".*MTAOS|.*MTDome|.*MTDomeTrajectory|.*MTPtg"
-      mtmount:
-        enabled: true
-        topicsRegex: ".*MTMount"
-      comcam:
-        enabled: true
-        topicsRegex: ".*CCCamera|.*CCHeaderService|.*CCOODS"
-      eas:
-        enabled: true
-        topicsRegex: ".*DIMM|.*DSM|.*ESS|.*WeatherForecast"
-      latiss:
-        enabled: true
-        topicsRegex: ".*ATCamera|.*ATHeaderService|.*ATOODS|.*ATSpectrograph"
-      m1m3:
-        enabled: true
-        topicsRegex: ".*MTM1M3"
-      m2:
-        enabled: true
-        topicsRegex: ".*MTHexapod|.*MTM2|.*MTRotator"
-      obssys:
-        enabled: true
-        topicsRegex: ".*Scheduler|.*Script|.*ScriptQueue|.*Watcher"
-      ocps:
-        enabled: true
-        topicsRegex: ".*OCPS"
-      test:
-        enabled: true
-        topicsRegex: "lsst.sal.Test"
-      pmd:
-        enabled: true
-        topicsRegex: ".*PMD"
-      calsys:
-        enabled: true
-        topicsRegex: ".*ATMonochromator|.*ATWhiteLight|.*CBP|.*Electrometer|.*FiberSpectrograph|.*LEDProjector|.*LinearStage|.*TunableLaser"
-      mtaircompressor:
-        enabled: true
-        topicsRegex: ".*MTAirCompressor"
-      authorize:
-        enabled: true
-        topicsRegex: ".*Authorize"
-      lasertracker:
-        enabled: true
-        topicsRegex: ".*LaserTracker"
-      genericcamera:
-        enabled: true
-        topicsRegex: ".*GCHeaderService|.*GenericCamera"
+        [ "lsst.sal.GCHeaderService", "lsst.sal.GenericCamera" ]
+      debug: true
+    obsenv:
+      enabled: true
+      database: "lsst.obsenv"
+      timestamp_format: "unix_ms"
+      timestamp_field: "timestamp"
+      topicRegexps: |
+        [ "lsst.obsenv" ]
+      debug: true
+  resources:
+    limits:
+      cpu: "2"
+      memory: "2Gi"
+    requests:
+      cpu: "1"
+      memory: "1Gi"
 
 kafdrop:
-  image:
-    tag: 4.0.0
   cmdArgs: "--message.format=AVRO --message.keyFormat=DEFAULT --topic.deleteEnabled=false --topic.createEnabled=false"
   ingress:
     enabled: true
@@ -212,12 +198,13 @@ rest-proxy:
     enabled: true
     hostname: tucson-teststand.lsst.codes
   configurationOverrides:
-    "access.control.allow.origin": http://love1.tu.lsst.org
+    "access.control.allow.origin": https://tucson-teststand.lsst.codes/love
   kafka:
     topics:
       - test.next-visit
     topicPrefixes:
       - test
+      - lsst.obsenv
       - lsst.dm
 
 chronograf:

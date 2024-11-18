@@ -16,7 +16,7 @@ config:
 
   # Support OpenID Connect clients like Chronograf.
   oidcServer:
-    enabled: false
+    enabled: true
 
   knownScopes:
     "write:git-lfs": >-
@@ -35,22 +35,23 @@ config:
           team: "square"
       - github:
           organization: "lsst-sqre"
-          team: "Friends"
+          team: "friends"
     "read:checkerboard":
       - github:
           organization: "lsst-sqre"
           team: "square"
       - github:
           organization: "lsst-sqre"
-          team: "Friends"
+          team: "friends"
 
   initialAdmins:
     - "afausti"
     - "athornton"
-    - "cbanek"
+    - "fajpunk"
     - "frossie"
     - "jonathansick"
     - "rra"
+    - "stvoutsin"
 
   errorFooter: |
     To report problems or ask for help, contact #dm-square on the LSSTC Slack.
@@ -59,4 +60,3 @@ ingress:
   additionalHosts:
     - "git-lfs-dev.lsst.cloud"
     - "git-lfs-dev-rw.lsst.cloud"
-    - "monitoring-dev.lsst.cloud"

@@ -14,11 +14,12 @@ clean:
 
 .PHONY: init
 init:
-	pip install --upgrade uv
-	uv pip install pre-commit tox
+	pip install --upgrade pip uv
+	uv pip install -r requirements/main.txt -r requirements/dev.txt \
+	    -r requirements/tox.txt
 	uv pip install --editable .
-	uv pip install -r requirements/main.txt -r requirements/dev.txt
 	rm -rf .tox
+	uv pip install --upgrade pre-commit
 	pre-commit install
 
 # This is defined as a Makefile target instead of only a tox command because
@@ -28,7 +29,7 @@ init:
 .PHONY: linkcheck
 linkcheck:
 	rm -rf docs/internals/api/
-	sphinx-build --keep-going -n -T -b linkcheck docs	\
+	sphinx-build -W --keep-going -n -T -b linkcheck docs	\
 	    docs/_build/linkcheck				\
 	    || (cat docs/_build/linkcheck/output.txt; exit 1)
 
@@ -37,19 +38,23 @@ update: update-deps init
 
 .PHONY: update-deps
 update-deps:
-	pip install --upgrade uv
-	uv pip install pre-commit
+	pip install --upgrade pip uv
+	uv pip install --upgrade pre-commit
 	pre-commit autoupdate
-	uv pip compile --upgrade --generate-hashes			\
-	    --output-file requirements/main.txt requirements/main.in
-	uv pip compile --upgrade --generate-hashes			\
+	uv pip compile --upgrade --universal --generate-hashes		\
+	    --output-file requirements/main.txt pyproject.toml
+	uv pip compile --upgrade --universal --generate-hashes		\
 	    --output-file requirements/dev.txt requirements/dev.in
+	uv pip compile --upgrade --universal --generate-hashes		\
+	    --output-file requirements/tox.txt requirements/tox.in
 
 # Useful for testing against a Git version of Safir.
 .PHONY: update-deps-no-hashes
 update-deps-no-hashes:
 	pip install --upgrade uv
-	uv pip compile --upgrade					\
-	    --output-file requirements/main.txt requirements/main.in
-	uv pip compile --upgrade					\
+	uv pip compile --upgrade --universal				\
+	    --output-file requirements/main.txt pyproject.toml
+	uv pip compile --upgrade --universal				\
 	    --output-file requirements/dev.txt requirements/dev.in
+	uv pip compile --upgrade --universal				\
+	    --output-file requirements/tox.txt requirements/tox.in

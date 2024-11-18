@@ -33,8 +33,8 @@ Manager frontend fullname
 {{/*
 Manager producers fullname
 */}}
-{{- define "love-manager-producers.fullname" -}}
-{{ include "love-manager.fullname" . }}-producers
+{{- define "love-manager-producer.fullname" -}}
+{{ include "love-manager.fullname" . }}-producer
 {{- end }}
 
 {{/*
@@ -63,9 +63,9 @@ helm.sh/chart: {{ include "love-manager.chart" . }}
 {{/*
 Manager Producers Common labels
 */}}
-{{- define "love-manager-producers.labels" -}}
+{{- define "love-manager-producer.labels" -}}
 helm.sh/chart: {{ include "love-manager.chart" . }}
-{{ include "love-manager-producers.selectorLabels" . }}
+{{ include "love-manager-producer.selectorLabels" . }}
 {{- end }}
 
 {{/*
@@ -87,18 +87,18 @@ app.kubernetes.io/instance: {{ include "love-manager.name" . }}-frontend
 {{/*
 Manager Producers Selector labels
 */}}
-{{- define "love-manager-producers.selectorLabels" -}}
+{{- define "love-manager-producer.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "love-manager.name" . }}
-app.kubernetes.io/instance: {{ include "love-manager.name" . }}-producers
+app.kubernetes.io/instance: {{ include "love-manager.name" . }}-producer
 {{- end }}
 
 {{/*
 Handle environment parameters
  */}}
 {{- define "helpers.envFromList" -}}
-{{- $secretName := .secretName }}
+{{- $secret := .secret }}
 {{- range $var, $value := .env }}
-{{- $item := dict "var" $var "value" $value "secretName" $secretName }}
+{{- $item := dict "var" $var "value" $value "secret" $secret }}
 {{ include "helpers.envType" $item }}
 {{- end }}
 {{- end }}
@@ -108,10 +108,10 @@ Determine type of environment
 */}}
 {{- define "helpers.envType" -}}
 - name: {{ .var }}
-{{- if ne .secretName "" }}
+{{- if .secret }}
   valueFrom:
     secretKeyRef:
-      name: {{ .secretName }}-secrets
+      name: love
       key: {{ .value }}
 {{- else }}
   value: {{ .value | quote }}
