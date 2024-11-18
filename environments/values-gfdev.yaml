@@ -1,0 +1,12 @@
+name: gfdev
+fqdn: rsp-gfdev.lsst.ac.uk
+vaultUrl: "https://vault.lsst.ac.uk"
+vaultPathPrefix: kv-v2/k8s_operator/gfdev
+applications:
+  mobu: true
+  nublado: true
+  portal: true
+  postgres: true
+  squareone: true
+  tap: false
+  cert-manager: false
