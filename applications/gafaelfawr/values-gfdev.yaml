@@ -6,8 +6,21 @@ config:
   internalDatabase: true
   updateSchema: false
 
-  github:
-    clientId: "97c64904c68b2737fdca"
+#  github:
+#    clientId: "97c64904c68b2737fdca"
+
+  oidc:
+    clientId: gfdev2
+    audience: "gfdev2"
+    loginUrl: "https://gf-kc.lsst.ac.uk:8443/realms/testing/protocol/openid-connect/auth"
+    tokenUrl: "https://gf-kc.lsst.ac.uk:8443/realms/testing/protocol/openid-connect/token"
+    issuer: "https://gf-kc.lsst.ac.uk:8443/realms/testing"
+    scopes:
+      - "openid"
+      - "email"
+      - "groups"
+      - "profile"
+    usernameClaim: "name"
 
   # Allow access by GitHub team.
   groupMapping:
