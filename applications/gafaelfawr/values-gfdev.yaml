@@ -16,9 +16,6 @@ config:
     issuer: "https://gf-kc.lsst.ac.uk:8443/realms/testing"
     scopes:
       - "openid"
-      - "email"
-      - "groups"
-      - "profile"
     usernameClaim: "name"
 
   ldap:
