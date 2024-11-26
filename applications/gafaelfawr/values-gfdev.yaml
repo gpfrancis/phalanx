@@ -5,7 +5,6 @@ redis:
 config:
   internalDatabase: true
   updateSchema: false
-
 #  github:
 #    clientId: "97c64904c68b2737fdca"
 
@@ -22,32 +21,37 @@ config:
       - "profile"
     usernameClaim: "name"
 
-  # Allow access by GitHub team.
-  groupMapping:
-    "exec:admin":
-      - github:
-          organization: "lsp-uk"
-          team: "dev"
-    "exec:internal-tools":
-      - github:
-          organization: "lsp-uk"
-          team: "dev"
-    "exec:notebook":
-      - github:
-          organization: "lsp-uk"
-          team: "dev"
-    "exec:portal":
-      - github:
-          organization: "lsp-uk"
-          team: "dev"
-    "read:image":
-      - github:
-          organization: "lsp-uk"
-          team: "dev"
-    "read:tap":
-      - github:
-          organization: "lsp-uk"
-          team: "dev"
+  ldap:
+    url: ldap://gf-kc.lsst.ac.uk
+    groupBaseDn: cn=groups,dc=lsst,dc=ac,dc=uk
+    groupObjectClass: posixGroup
+    groupMemberAttr: memberUid
+    groupSearchByDn: false
+    userBaseDn: cn=users,dc=lsst,dc=ac,dc=uk
+    userSearchAttr: uid
+    addUserGroup: false
+    uidAttr: uidNumber
+    gidAttr: gidNumber
+    nameAttr: gecos
 
-  initialAdmins:
-    - "gpfrancis"
+  groupMapping:
+    "admin:token":
+      - "lsst"
+    "admin:jupyterlab":
+      - "lsst"
+    "exec:admin":
+      - "lsst"
+    "exec:internal-tools":
+      - "lsst"
+    "exec:notebook":
+      - "lsst"
+    "exec:portal":
+      - "lsst"
+    "read:image":
+      - "lsst"
+    "read:tap":
+      - "lsst"
+    "write:files":
+      - "lsst"
+    "user:token":
+      - "lsst"
