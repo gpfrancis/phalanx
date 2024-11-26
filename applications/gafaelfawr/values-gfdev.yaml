@@ -21,7 +21,7 @@ config:
 
   ldap:
     url: ldap://gf-kc.lsst.ac.uk
-    groupBaseDn: cn=groups,dc=lsst,dc=ac,dc=uk
+    groupBaseDn: ou=groups,dc=lsst,dc=ac,dc=uk
     groupObjectClass: posixGroup
     groupMemberAttr: memberUid
     groupSearchByDn: false
