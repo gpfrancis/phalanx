@@ -3,6 +3,7 @@ redis:
     enabled: false
 
 config:
+  logLevel: "DEBUG"
   internalDatabase: true
   updateSchema: false
 #  github:
